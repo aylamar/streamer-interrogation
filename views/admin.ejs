@@ -1,0 +1,96 @@
+<style>
+    body {
+        font-family: "Comic Sans MS", "Comic Sans";
+        background-color: #18181b;
+        color: #ebebed
+    }
+
+    form {
+        display: inline;
+    }
+</style>
+
+<body>
+<div>
+    <h1>Admin Panel</h1>
+</div>
+<div>
+    <h2>Send messages</h2>
+        <% if (appStateArr.length != 0) { %>
+            <form action="/admin/send" method="POST">
+                <button type="submit" name="type" value="state"> Send random statement message</button>
+            </form>
+        <% } else { %>
+            No pending approved statements
+        <% } %>
+        <% if (appTauntArr.length != 0) { %>
+            <form action="/admin/send" method="POST">
+                <button type="submit" name="type" value="taunt"> Send random taunt</button>
+            </form>
+        <% } else { %>
+            No pending approved taunts
+        <% } %>
+        <% if (appQuestionArr.length != 0) { %>
+            <form action="/admin/send" method="POST">
+                <button type="submit" name="type" value="question"> Send random question</button>
+            </form>
+        <% } else { %>
+            No pending approved questions
+        <% } %>
+        <form action="/admin/send" method="POST">
+            <button type="submit" name="type" value="clear"> Clear current message</button>
+        </form>
+</div>
+<div>
+    <h2>Message approvals</h2>
+    <h3>Statement Approval</h3>
+    <% if (stateArr.length != 0) { %>
+        <% stateArr.forEach(function (item) { %>
+            <p>
+            <form action="/admin/state" method="POST">
+                <input type="text" readonly style="width: 15ch;" name="user" value="<%= item['user'] %>">
+                <input type="text" style="width: 80%;" readonly name="msg" value="<%= item['msg'] %>">
+                <button type="submit" name="type" value="approve"> Approve</button>
+                <button type="submit" name="type" value="delete"> Deny</button>
+            </form>
+            </p>
+        <% }) %>
+    <% } else { %>
+        <p>No pending state messages</p>
+    <% } %>
+</div>
+<div>
+    <h3>Taunt Approval</h3>
+    <% if (tauntArr.length != 0) { %>
+        <% tauntArr.forEach(function (item) { %>
+            <p>
+            <form action="/admin/taunt" method="POST">
+                <input type="text" readonly style="width: 15ch;" name="user" value="<%= item['user'] %>">
+                <input type="text" style="width: 80%;" readonly name="msg" value="<%= item['msg'] %>">
+                <button type="submit" name="type" value="approve"> Approve</button>
+                <button type="submit" name="type" value="delete"> Deny</button>
+            </form>
+            </p>
+        <% }) %>
+    <% } else { %>
+        <p>No pending state messages</p>
+    <% } %>
+</div>
+<div>
+    <h3>Question Approval</h3>
+    <% if (questionArr.length != 0) { %>
+        <% questionArr.forEach(function (item) { %>
+            <p>
+            <form action="/admin/question" method="POST">
+                <input type="text" readonly style="width: 15ch;" name="user" value="<%= item['user'] %>">
+                <input type="text" style="width: 80%;" readonly name="msg" value="<%= item['msg'] %>">
+                <button type="submit" name="type" value="approve"> Approve</button>
+                <button type="submit" name="type" value="delete"> Deny</button>
+            </form>
+            </p>
+        <% }) %>
+    <% } else { %>
+        <p>No pending state messages</p>
+    <% } %>
+</div>
+</body>

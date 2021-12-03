@@ -1,0 +1,50 @@
+<head>
+    <style>
+        body {
+            color: white;
+            font-size: 32px;
+            font-family: "Comic Sans MS", "Comic Sans", serif;
+            text-align: center;
+        }
+
+        button {
+            visibility: hidden;
+        }
+
+        img {
+            width: 503px;
+            height: 512px;
+            display: block;
+            margin: auto;
+        }
+    </style>
+
+    <meta http-equiv="refresh" content="5">
+</head>
+
+<body>
+<div>
+    <!-- Form with button that submits post request to route -->
+    <form action="/streamer_view/submit" method="post">
+        <% if (!msg) { %>
+            <input hidden name="msg" value="none">
+        <% } else { %>
+            <%= msg %>
+            <p>
+                <img src="<%= img %>" alt=''>
+            </p>
+            <p>
+                <input hidden name="msg" value="<%= msg %>">
+            </p>
+        <% } %>
+        <button type="submit" name="type" value="submit"></button>
+    </form>
+</div>
+</body>
+
+<script>
+    // Click submit button 30 seconds after page loads
+    setTimeout(function() {
+        document.getElementsByTagName('button')[0].click();
+    }, 30000);
+</script>
