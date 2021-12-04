@@ -16,7 +16,10 @@ router.post('/submit', async (req, res) => {
         console.log('Clearing message');
         TwitchBot.currMsg = '';
         res.redirect('/streamer_view');
-    } else res.redirect('/streamer_view');
+    } else {
+        console.log('Redirecting, no need to clear message');
+        res.redirect('/streamer_view');
+    }
 });
 
 // Export router

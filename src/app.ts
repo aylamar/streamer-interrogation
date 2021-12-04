@@ -21,8 +21,8 @@ app.use('/admin', adminRoute)
 app.use('/streamer_view', streamerRoute)
 
 // Start listener & alert console
-app.listen(3000, () => {
-    console.log('Server is up on port 3000.');
+app.listen(80, () => {
+    console.log('Server is up on port 80.');
 });
 
 // Start bot & export
