@@ -40,34 +40,56 @@ class Bot {
         this.approvedQuestion = [];
 
         this.client.on('message', (channel, userState, message, self) => {
-            if (self || !message.startsWith('!')) return;
+            try {
+                if (self || !message.startsWith('!')) return;
 
-            const args = message.slice(1).split(' ');
-            const command = args.shift()?.toLowerCase();
+                const args = message.slice(1).split(' ');
+                const command = args.shift()?.toLowerCase();
 
-            // get the rest oif the message
-            const msg = args.join(' ');
+                // get the rest oif the message
+                const msg = args.join(' ');
 
-            // if args are empty, return
-            if (msg == '') return;
+                // if args are empty, return
+                if (msg == '') return;
 
-            // get message sender, return if undefined
-            const username = userState['display-name'] ?? userState['username'];
-            if (!username) return;
+                // get message sender, return if undefined
+                const username = userState['display-name'] ?? userState['username'];
+                if (!username) return;
 
-            if (command === 'state') {
-                // add sender and message to state array
-                this.stateArr.push({ user: username, msg: msg });
+                if (command === 'state') {
+                    for (let i = 0; i < this.stateArr.length; i++) {
+                        if (this.stateArr[i].user === username && this.stateArr[i].msg === msg) {
+                            console.log(channel, `${username}, ${msg} is already in the list.`);
+                            return;
+                        }
+                    }
+                    this.stateArr.push({ user: username, msg: msg });
+                }
+
+                if (command === 'taunt') {
+                    for (let i = 0; i < this.tauntArr.length; i++) {
+                        if (this.tauntArr[i].user === username && this.tauntArr[i].msg === msg) {
+                            console.log(channel, `${username}, ${msg} is already in the list.`);
+                            return;
+                        }
+                    }
+                    this.tauntArr.push({ user: username, msg: msg });
+                }
+
+                if (command === 'question') {
+                    for (let i = 0; i < this.questionArr.length; i++) {
+                        if (this.questionArr[i].user === username && this.questionArr[i].msg === msg) {
+                            console.log(channel, `${username}, ${msg} is already in the list.`);
+                            return;
+                        }
+                    }
+                    this.questionArr.push({ user: username, msg: msg });
+                }
+
+                console.log(this.stateArr);
+            } catch (error) {
+                console.log(error);
             }
-
-            if (command === 'taunt') {
-                this.tauntArr.push({ user: username, msg: msg });
-            }
-            if (command === 'question') {
-                this.questionArr.push({ user: username, msg: msg });
-            }
-
-            console.log(this.stateArr);
         });
 
         this.setCurrMsg('Bot just started, waiting...');
@@ -101,6 +123,7 @@ class Bot {
     // Get random message from approvedState, then delete item from approvedState
     public getRandomState() {
         try {
+            if (this.approvedState.length === 0) return;
             const item = this.approvedState[
                 Math.floor(Math.random() * this.approvedState.length)
                 ];
@@ -128,6 +151,7 @@ class Bot {
 
     public getRandomTaunt() {
         try {
+            if (this.approvedTaunt.length === 0) return;
             const item = this.approvedTaunt[
                 Math.floor(Math.random() * this.approvedTaunt.length)
                 ];
@@ -155,6 +179,7 @@ class Bot {
 
     public getRandomQuestion() {
         try {
+            if (this.approvedQuestion.length === 0) return;
             const item = this.approvedQuestion[
                 Math.floor(Math.random() * this.approvedQuestion.length)
                 ];
