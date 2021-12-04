@@ -66,7 +66,7 @@ class Bot {
                     this.stateArr.push({ user: username, msg: msg });
                 }
 
-                if (command === 'taunt') {
+                if (command === 'flirt') {
                     for (let i = 0; i < this.tauntArr.length; i++) {
                         if (this.tauntArr[i].user === username && this.tauntArr[i].msg === msg) {
                             console.log(channel, `${username}, ${msg} is already in the list.`);
@@ -92,7 +92,7 @@ class Bot {
             }
         });
 
-        this.setCurrMsg('Bot just started, waiting...');
+        this.setCurrMsg('');
     }
 
     // Set currMsg
