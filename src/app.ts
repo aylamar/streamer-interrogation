@@ -6,7 +6,7 @@ import Bot from './bot/bot';
 // Import routes
 import indexRoute from './routes/index';
 import adminRoute from './routes/admin';
-import streamerRoute from './routes/steamer_view';
+import streamerRoute from './routes/streamer_view';
 import bodyParser from 'body-parser';
 
 // Set view engine
