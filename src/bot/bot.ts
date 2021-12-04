@@ -48,6 +48,9 @@ class Bot {
             // get the rest oif the message
             const msg = args.join(' ');
 
+            // if args are empty, return
+            if (msg == '') return;
+
             // get message sender, return if undefined
             const username = userState['display-name'] ?? userState['username'];
             if (!username) return;
