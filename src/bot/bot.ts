@@ -51,6 +51,7 @@ class Bot {
 
                 // if args are empty, return
                 if (msg == '') return;
+                if (msg.length > 120) return;
 
                 // get message sender, return if undefined
                 const username = userState['display-name'] ?? userState['username'];
