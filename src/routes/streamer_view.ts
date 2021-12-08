@@ -3,12 +3,11 @@ import express from 'express';
 import { TwitchBot } from '../app';
 
 const router = express.Router();
-const alert_img = process.env.ALERT_IMG;
 
 // Setup router
 router.get('/', async (req, res) => {
     try {
-        res.render('streamer_view', { msg: TwitchBot.currMsg, img: alert_img });
+        res.render('streamer_view', { msg: TwitchBot.currMsg, img: TwitchBot.currImg });
     } catch (err) {
         console.log(err);
         res.redirect('/');

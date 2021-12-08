@@ -13,6 +13,7 @@ class Bot {
     public approvedState: any[];
     public approvedTaunt: any[];
     public approvedQuestion: any[];
+    public currImg: string | undefined;
     private client: tmi.Client;
 
     public constructor() {
@@ -130,6 +131,7 @@ class Bot {
                 ];
             this.approvedState.splice(this.approvedState.indexOf(item), 1);
             this.setCurrMsg(item.msg);
+            this.currImg = process.env.STATE_IMG
         } catch (err) {
             this.setCurrMsg('No approved state messages');
             console.log(err);
@@ -158,6 +160,7 @@ class Bot {
                 ];
             this.approvedTaunt.splice(this.approvedTaunt.indexOf(item), 1);
             this.setCurrMsg(item.msg);
+            this.currImg = process.env.FLIRT_IMG
         } catch (err) {
             this.setCurrMsg('No approved taunt messages');
             console.log(err);
@@ -186,6 +189,7 @@ class Bot {
                 ];
             this.approvedQuestion.splice(this.approvedQuestion.indexOf(item), 1);
             this.setCurrMsg(item.msg);
+            this.currImg = process.env.QUESTION_IMG
         } catch (err) {
             this.setCurrMsg('No approved question messages');
             console.log(err);
