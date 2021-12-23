@@ -1,6 +1,8 @@
 // Import TMI
 import tmi from 'tmi.js';
 import dotenv from 'dotenv';
+import {v4 as uuidv4} from 'uuid';
+import {io} from '../app'
 
 dotenv.config();
 
@@ -10,15 +12,12 @@ class Bot {
     public tauntArr: any[];
     public questionArr: any[];
     public currMsg: string | undefined;
-    public approvedState: any[];
-    public approvedTaunt: any[];
-    public approvedQuestion: any[];
     public currImg: string | undefined;
     private client: tmi.Client;
 
     public constructor() {
         this.client = new tmi.Client({
-            options: { debug: false },
+            options: {debug: false},
             identity: {
                 username: process.env.TWITCH_USERNAME,
                 password: process.env.TWITCH_OAUTH_TOKEN
@@ -27,7 +26,7 @@ class Bot {
         });
 
         this.client.connect().catch(console.error);
-        this.client.on('connected', (address, port) => {
+        this.client.on('connected', (address: string, port: number) => {
             console.log(`Connected to ${address}:${port}`);
         });
 
@@ -35,10 +34,6 @@ class Bot {
         this.stateArr = [];
         this.tauntArr = [];
         this.questionArr = [];
-
-        this.approvedState = [];
-        this.approvedTaunt = [];
-        this.approvedQuestion = [];
 
         this.client.on('message', (channel, userState, message, self) => {
             try {
@@ -58,6 +53,14 @@ class Bot {
                 const username = userState['display-name'] ?? userState['username'];
                 if (!username) return;
 
+                let item = {
+                    user: username,
+                    msg: msg,
+                    type: command,
+                    id: uuidv4(),
+                    approved: false
+                };
+
                 if (command === 'state') {
                     for (let i = 0; i < this.stateArr.length; i++) {
                         if (this.stateArr[i].user === username && this.stateArr[i].msg === msg) {
@@ -65,7 +68,9 @@ class Bot {
                             return;
                         }
                     }
-                    this.stateArr.push({ user: username, msg: msg });
+                    item.type = 'state';
+                    this.addMsg(item);
+                    io.emit('addUnapprovedItem', item);
                 }
 
                 if (command === 'flirt') {
@@ -75,7 +80,9 @@ class Bot {
                             return;
                         }
                     }
-                    this.tauntArr.push({ user: username, msg: msg });
+                    item.type = 'taunt';
+                    this.addMsg(item);
+                    io.emit('addUnapprovedItem', item);
                 }
 
                 if (command === 'question') {
@@ -85,10 +92,10 @@ class Bot {
                             return;
                         }
                     }
-                    this.questionArr.push({ user: username, msg: msg });
+                    item.type = 'question';
+                    this.addMsg(item);
+                    io.emit('addUnapprovedItem', item);
                 }
-
-                console.log(this.stateArr);
             } catch (error) {
                 console.log(error);
             }
@@ -101,100 +108,253 @@ class Bot {
     public setCurrMsg(msg: string) {
         try {
             this.currMsg = msg;
+            let data = {
+                msg: msg,
+                url: 'https://i.imgur.com/removed.png'
+            };
+            io.emit('newStreamerMsg', data);
+            return true;
         } catch (err) {
             this.currMsg = '';
             console.log(err);
+            return false;
         }
     }
 
-    // Iterate through stateArr, delete item if user and msg match
-    public deleteStateItem(user: string, msg: string) {
-        this.stateArr.forEach((item) => {
-            if (item.user === user && item.msg === msg) {
-                this.stateArr.splice(this.stateArr.indexOf(item), 1);
-            }
-        });
-    }
-
-    // Add item to approvedState, then remove from stateArr
-    public approveStateItem(user: string, msg: string) {
-        this.approvedState.push({ user: user, msg: msg });
-        this.deleteStateItem(user, msg);
-    }
-
-    // Get random message from approvedState, then delete item from approvedState
-    public getRandomState() {
+    public sendMessage(id: string, type: string) {
         try {
-            if (this.approvedState.length === 0) return;
-            const item = this.approvedState[
-                Math.floor(Math.random() * this.approvedState.length)
-                ];
-            this.approvedState.splice(this.approvedState.indexOf(item), 1);
-            this.setCurrMsg(item.msg);
-            this.currImg = process.env.STATE_IMG
+            let msg = this.getMsg(id, type);
+            let state = this.deleteMsg(id, type);
+            if (state) {
+                this.setCurrMsg(msg);
+                return true
+            } else {
+                return false
+            }
         } catch (err) {
-            this.setCurrMsg('No approved state messages');
+            console.log(err);
+            return false;
+        }
+    }
+
+    public mutateMessageId(id: string, type: string) {
+        let message = this.getMsg(id, type);
+        let newId = uuidv4();
+        let state = this.deleteMsg(id, type);
+        if (state) {
+            let item = {
+                user: message.user,
+                msg: message.msg,
+                type: message.type,
+                id: newId,
+                approved: true
+            };
+            this.addMsg(item);
+            return item;
+        } else {
+            return false;
+        }
+    }
+
+    // add message to array based on type
+    public addMsg(item: any) {
+        try {
+            if (item.type === 'state') {
+                this.stateArr.push(item);
+            } else if (item.type === 'taunt') {
+                this.tauntArr.push(item);
+            } else if (item.type === 'question') {
+                this.questionArr.push(item);
+            }
+            return true;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
+    }
+
+    public clearMessage() {
+        try {
+            console.log('hit')
+            this.setCurrMsg('');
+            io.emit('clearStreamerMsg');
+            return true
+        } catch (err) {
+            return false;
+        }
+    }
+
+    // approve a message using id and type
+    public approveMsg(id: string, type: string) {
+        try {
+            if (type === 'state') {
+                for (let i = 0; i < this.stateArr.length; i++) {
+                    if (this.stateArr[i].id === id) {
+                        this.stateArr[i].approved = true;
+                        this.stateArr[i].id = uuidv4();
+                        return this.stateArr[i]
+                    }
+                }
+            }
+
+            if (type === 'taunt') {
+                for (let i = 0; i < this.tauntArr.length; i++) {
+                    if (this.tauntArr[i].id === id) {
+                        this.tauntArr[i].approved = true;
+                        this.tauntArr[i].id = uuidv4();
+                        return this.stateArr[i]
+                    }
+                }
+            }
+
+            if (type === 'question') {
+                for (let i = 0; i < this.questionArr.length; i++) {
+                    if (this.questionArr[i].id === id) {
+                        this.questionArr[i].approved = true;
+                        this.questionArr[i].id = uuidv4();
+                        return this.questionArr[i]
+                    }
+                }
+            }
+            return false
+        } catch (err) {
             console.log(err);
         }
     }
 
-    // Repeat the three above functions but with tauntArr
-    public deleteTauntItem(user: string, msg: string) {
-        this.tauntArr.forEach((item) => {
-            if (item.user === user && item.msg === msg) {
-                this.tauntArr.splice(this.tauntArr.indexOf(item), 1);
-            }
-        });
-    }
-
-    public approveTauntItem(user: string, msg: string) {
-        this.approvedTaunt.push({ user: user, msg: msg });
-        this.deleteTauntItem(user, msg);
-    }
-
-    public getRandomTaunt() {
+    // get message by id and type
+    public getMsg(id: string, type: string) {
         try {
-            if (this.approvedTaunt.length === 0) return;
-            const item = this.approvedTaunt[
-                Math.floor(Math.random() * this.approvedTaunt.length)
-                ];
-            this.approvedTaunt.splice(this.approvedTaunt.indexOf(item), 1);
-            this.setCurrMsg(item.msg);
-            this.currImg = process.env.FLIRT_IMG
+            if (type === 'state') {
+                for (let i = 0; i < this.stateArr.length; i++) {
+                    if (this.stateArr[i].id === id) {
+                        return this.stateArr[i];
+                    }
+                }
+            }
+
+            if (type === 'taunt') {
+                for (let i = 0; i < this.tauntArr.length; i++) {
+                    if (this.tauntArr[i].id === id) {
+                        return this.tauntArr[i];
+                    }
+                }
+            }
+
+            if (type === 'question') {
+                for (let i = 0; i < this.questionArr.length; i++) {
+                    if (this.questionArr[i].id === id) {
+                        return this.questionArr[i];
+                    }
+                }
+            }
+            return null
         } catch (err) {
-            this.setCurrMsg('No approved taunt messages');
             console.log(err);
         }
     }
 
-    // Repeat the three above functions but with questionArr
-    public deleteQuestionItem(user: string, msg: string) {
-        this.questionArr.forEach((item) => {
-            if (item.user === user && item.msg === msg) {
-                this.questionArr.splice(this.questionArr.indexOf(item), 1);
-            }
-        });
-    }
-
-    public approveQuestionItem(user: string, msg: string) {
-        this.approvedQuestion.push({ user: user, msg: msg });
-        this.deleteQuestionItem(user, msg);
-    }
-
-    public getRandomQuestion() {
+    // delete message by id and type
+    public deleteMsg(id: string, type: string) {
         try {
-            if (this.approvedQuestion.length === 0) return;
-            const item = this.approvedQuestion[
-                Math.floor(Math.random() * this.approvedQuestion.length)
-                ];
-            this.approvedQuestion.splice(this.approvedQuestion.indexOf(item), 1);
-            this.setCurrMsg(item.msg);
-            this.currImg = process.env.QUESTION_IMG
+            if (type === 'state') {
+                for (let i = 0; i < this.stateArr.length; i++) {
+                    if (this.stateArr[i].id === id) {
+                        this.stateArr.splice(i, 1);
+                        return true;
+                    }
+                }
+            }
+
+            if (type === 'taunt') {
+                for (let i = 0; i < this.tauntArr.length; i++) {
+                    if (this.tauntArr[i].id === id) {
+                        this.tauntArr.splice(i, 1);
+                        return true;
+                    }
+                }
+            }
+
+            if (type === 'question') {
+                for (let i = 0; i < this.questionArr.length; i++) {
+                    if (this.questionArr[i].id === id) {
+                        this.questionArr.splice(i, 1);
+                        return true;
+                    }
+                }
+            }
+            return false
         } catch (err) {
-            this.setCurrMsg('No approved question messages');
             console.log(err);
         }
     }
+
+    // get all messages by type with approved = false
+    public getAllMessagesByType(type: string, approved: boolean) {
+        try {
+            if (type === 'state') {
+                return this.stateArr.filter(item => item.approved === approved);
+            }
+
+            if (type === 'taunt') {
+                return this.tauntArr.filter(item => item.approved === approved);
+            }
+
+            if (type === 'question') {
+                return this.questionArr.filter(item => item.approved === approved);
+            }
+            return null
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // get random message from array based on type
+    public getRandomMessageByType(type: string) {
+        try {
+            if (type === 'state') {
+                return this.stateArr[Math.floor(Math.random() * this.stateArr.length)];
+            }
+
+            if (type === 'taunt') {
+                return this.tauntArr[Math.floor(Math.random() * this.tauntArr.length)];
+            }
+
+            if (type === 'question') {
+                return this.questionArr[Math.floor(Math.random() * this.questionArr.length)];
+            }
+            return null
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    public setRandomMessage(type: string) {
+        try {
+            if (type === 'state') {
+                const msg = this.getRandomMessageByType(type);
+                this.sendMessage(msg.id, msg.type)
+                io.emit('deleteItem', msg.id)
+                return true
+            } else if (type === 'taunt') {
+                const msg = this.getRandomMessageByType(type);
+                this.sendMessage(msg.id, msg.type)
+                io.emit('deleteItem', msg.id)
+                return true
+            } else if (type === 'question') {
+                const msg = this.getRandomMessageByType(type);
+                this.sendMessage(msg.id, msg.type)
+                io.emit('deleteItem', msg.id)
+                return true
+            } else {
+                return false
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+
 }
 
 export default Bot;

@@ -1,0 +1,234 @@
+<style>
+    body {
+        font-family: "Comic Sans MS", "Comic Sans", serif;
+        background-color: #18181b;
+        color: #ebebed
+    }
+
+    form {
+        display: inline;
+    }
+</style>
+
+<body>
+<div id="settings">
+    <h1>Settings</h1>
+    <button type="button" id="send-random-question">Send Random Question</button>
+    <button type="button" id="send-random-state">Send Random Statement</button>
+    <button type="button" id="send-random-taunt">Send Random Taunt</button>
+    <button type="button" id="clear-msg">Clear Current Message</button>
+</div>
+
+<div id="approved-questions">
+    <h1>Approved Items</h1>
+    <div id="question-approved">
+        <h2>Questions</h2>
+    </div>
+    <div id="state-approved">
+        <h2>Statements</h2>
+    </div>
+    <div id="taunt-approved">
+        <h2>Taunts</h2>
+    </div>
+
+</div>
+<div id="unapproved-items">
+    <h1>Unapproved Items</h1>
+    <div id="question-queue">
+        <h2>Questions</h2>
+    </div>
+    <div id="state-queue">
+        <h2>Statements</h2>
+    </div>
+    <div id="taunt-queue">
+        <h2>Taunts</h2>
+    </div>
+</div>
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    socket.on('connect', function () {
+        console.log('Connected to server');
+    });
+
+    socket.on('alert', function (alertText) {
+        document.getElementById('alert').innerHTML = alertText;
+    });
+
+    const typeArr = ['state', 'taunt', 'question']
+
+    // Generate the approved divs
+    typeArr.forEach(type => {
+        const div = document.createElement('div');
+        div.id = `${type}-approved`;
+        document.getElementById(`${type}-approved`).appendChild(div);
+        fetch(`/api/approved/${type}`)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (items) {
+                for (let i = 0; i < items.length; i++) {
+                    const newDiv = document.createElement('div');
+                    newDiv.innerHTML = items[i].user + ": " + items[i].msg + " ";
+                    newDiv.id = items[i].id;
+                    document.getElementById(`${type}-approved`).appendChild(newDiv);
+
+                    const submitButton = document.createElement('button');
+                    submitButton.innerHTML = 'Send';
+                    submitButton.id = 'submitButton';
+                    newDiv.appendChild(submitButton);
+                    submitButton.addEventListener('click', function () {
+                        const id = items[i].id;
+                        fetch(`/api/ap/send/${type}/${id}`, {
+                            method: 'DELETE'
+                        })
+                    });
+
+                    const denyButton = document.createElement('button');
+                    denyButton.innerHTML = 'Delete';
+                    denyButton.id = 'denyButton';
+                    newDiv.appendChild(denyButton);
+                    denyButton.addEventListener('click', function () {
+                        const id = items[i].id;
+                        fetch(`/api/ap/delete/${type}/${id}`, {
+                            method: 'DELETE'
+                        })
+                    });
+                }
+            });
+    });
+
+    // Generate the unapproved divs
+    typeArr.forEach(type => {
+        const div = document.createElement('div');
+        div.id = `${type}-queue`;
+        document.getElementById(`${type}-queue`).appendChild(div);
+
+        fetch(`/api/unapproved/${type}`)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (items) {
+                for (let i = 0; i < items.length; i++) {
+                    const newDiv = document.createElement('div');
+                    newDiv.innerHTML = items[i].user + ": " + items[i].msg + " ";
+                    newDiv.id = items[i].id;
+                    document.getElementById(`${type}-queue`).appendChild(newDiv);
+
+                    const submitButton = document.createElement('button');
+                    submitButton.innerHTML = 'Approve';
+                    submitButton.id = 'submitButton';
+                    newDiv.appendChild(submitButton);
+                    submitButton.addEventListener('click', function () {
+                        const id = items[i].id;
+                        fetch(`/api/uap/approve/${type}/${id}`, {
+                            method: 'DELETE'
+                        })
+                    });
+
+                    const denyButton = document.createElement('button');
+                    denyButton.innerHTML = 'Deny';
+                    denyButton.id = 'denyButton';
+                    newDiv.appendChild(denyButton);
+                    denyButton.addEventListener('click', function () {
+                        const id = items[i].id;
+                        fetch(`/api/uap/deny/${type}/${id}`, {
+                            method: 'DELETE'
+                        })
+                    });
+                }
+            });
+    });
+
+    // Add unapproved items to unapproved div
+    socket.on('addUnapprovedItem', function (item) {
+        const newDiv = document.createElement('div');
+        newDiv.innerHTML = item.user + ": " + item.msg;
+        newDiv.id = item.id;
+        document.getElementById(`${item.type}-queue`).appendChild(newDiv);
+
+        const submitButton = document.createElement('button');
+        submitButton.innerHTML = 'Approve';
+        submitButton.id = 'submitButton';
+        newDiv.appendChild(submitButton);
+        submitButton.addEventListener('click', function () {
+            const id = item.id;
+            fetch(`/api/uap/approve/${item.type}/${id}`, {
+                method: 'DELETE'
+            })
+        });
+
+        const denyButton = document.createElement('button');
+        denyButton.innerHTML = 'Deny';
+        denyButton.id = 'denyButton';
+        newDiv.appendChild(denyButton);
+        denyButton.addEventListener('click', function () {
+            const id = item.id;
+            fetch(`/api/uap/deny/${item.type}/${id}`, {
+                method: 'DELETE'
+            })
+        });
+    });
+
+    // Add approved item to the approved div
+    socket.on('addApprovedItem', function (item) {
+        const newDiv = document.createElement('div');
+        newDiv.innerHTML = item.user + ": " + item.msg;
+        newDiv.id = item.id;
+        document.getElementById(`${item.type}-approved`).appendChild(newDiv);
+
+        const submitButton = document.createElement('button');
+        submitButton.innerHTML = 'Send';
+        submitButton.id = 'submitButton';
+        newDiv.appendChild(submitButton);
+        submitButton.addEventListener('click', function () {
+            const id = item.id;
+            fetch(`/api/ap/send/${item.type}/${id}`, {
+                method: 'DELETE'
+            })
+        });
+
+        const denyButton = document.createElement('button');
+        denyButton.innerHTML = 'Delete';
+        denyButton.id = 'denyButton';
+        newDiv.appendChild(denyButton);
+        denyButton.addEventListener('click', function () {
+            const id = item.id;
+            fetch(`/api/ap/delete/${item.type}/${id}`, {
+                method: 'DELETE'
+            })
+        });
+    });
+
+    // On "deleteItem", delete div with id = item.id
+    socket.on('deleteItem', function (id) {
+        document.getElementById(id).remove();
+    });
+
+    // when clear-msg button is clicked, make a request to api
+    document.getElementById('clear-msg').addEventListener('click', function () {
+        fetch('/api/clear', {
+            method: 'DELETE'
+        })
+    });
+
+    document.getElementById('send-random-question').addEventListener('click', function () {
+        fetch('/api/send/question', {
+            method: 'DELETE'
+        })
+    });
+    document.getElementById('send-random-state').addEventListener('click', function () {
+        fetch('/api/send/state', {
+            method: 'DELETE'
+        })
+    });
+    document.getElementById('send-random-taunt').addEventListener('click', function () {
+        fetch('/api/send/taunt', {
+            method: 'DELETE'
+        })
+    });
+
+</script>

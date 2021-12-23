@@ -1,0 +1,48 @@
+<style>
+    body {
+        font-size: 32px;
+        font-family: "Comic Sans MS", "Comic Sans", serif;
+        text-align: center;
+        background-color: #18181b;
+        color: #ebebed
+    }
+    img {
+        width: 503px;
+        height: 512px;
+        display: block;
+        margin: auto;
+    }
+</style>
+
+<body>
+    <div id="message"></div>
+    <img id="img" src="" alt="" style="visibility: hidden;">
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    var socket = io();
+
+    // onload, get the current message from api
+    fetch('/api/current')
+        .then(function(response) {
+            return response.json();
+        })
+
+    // on newMessage event, set the new message as the divs innerHTML
+    socket.on('newStreamerMsg', function(data) {
+        console.log(data);
+        document.getElementById('message').innerHTML = data.msg.msg;
+        document.getElementById('img').src = data.url;
+        document.getElementById('img').style.visibility = 'visible';
+    });
+
+    // on clear event, hide the image and clear the message
+    socket.on('clearStreamerMsg', function() {
+        console.log('hit')
+        document.getElementById('img').style.visibility = 'hidden';
+        document.getElementById('message').innerHTML = '';
+    });
+
+</script>
