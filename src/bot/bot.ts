@@ -12,8 +12,10 @@ class Bot {
     public tauntArr: any[];
     public questionArr: any[];
     public currMsg: string | undefined;
-    public currImg: string | undefined;
     private client: tmi.Client;
+    private stateImg: string;
+    private tauntImg: string;
+    private questionImg: string;
 
     public constructor() {
         this.client = new tmi.Client({
@@ -101,16 +103,20 @@ class Bot {
             }
         });
 
-        this.setCurrMsg('');
+        this.questionImg = 'https://i.imgur.com/removed.png';
+        this.stateImg = 'https://i.imgur.com/removed.png';
+        this.tauntImg = 'https://i.imgur.com/removed.png';
+
+        this.setCurrMsg('', '');
     }
 
     // Set currMsg
-    public setCurrMsg(msg: string) {
+    public setCurrMsg(msg: string, imageUrl: string) {
         try {
             this.currMsg = msg;
             let data = {
                 msg: msg,
-                url: 'https://i.imgur.com/removed.png'
+                url: imageUrl,
             };
             io.emit('newStreamerMsg', data);
             return true;
@@ -122,11 +128,26 @@ class Bot {
     }
 
     public sendMessage(id: string, type: string) {
+        const validTypes = ['state', 'taunt', 'question'];
+        if (!validTypes.includes(type)) return;
+
         try {
             let msg = this.getMsg(id, type);
             let state = this.deleteMsg(id, type);
+
+            // get imageUrl based on type
+            let imageUrl = '';
+            if (type === 'state') {
+                imageUrl = this.stateImg;
+            } else if (type === 'taunt') {
+                imageUrl = this.tauntImg;
+            } else if (type === 'question') {
+                imageUrl = this.questionImg;
+            }
+
             if (state) {
-                this.setCurrMsg(msg);
+                console.log(imageUrl)
+                this.setCurrMsg(msg, imageUrl);
                 return true
             } else {
                 return false
@@ -175,7 +196,7 @@ class Bot {
 
     public clearMessage() {
         try {
-            this.setCurrMsg('');
+            this.setCurrMsg('', '');
             io.emit('clearStreamerMsg');
             return true
         } catch (err) {
@@ -337,6 +358,44 @@ class Bot {
         }
     }
 
+    public setImage(type: string, url: string) {
+        try {
+            if (type === 'state') {
+                this.stateImg = url;
+                return true;
+            } else if (type === 'taunt') {
+                this.tauntImg = url;
+                return true;
+            } else if (type === 'question') {
+                console.log(this.questionImg, 'question1')
+                this.questionImg = url;
+                console.log(this.questionImg, 'question')
+                return true;
+            } else {
+                return false;
+            }
+        } catch (err) {
+            console.log(err);
+            return false
+        }
+    }
+
+    public getImage(type: string) {
+        try {
+            if (type === 'state') {
+                return this.stateImg;
+            } else if (type === 'taunt') {
+                return this.tauntImg;
+            } else if (type === 'question') {
+                return this.questionImg;
+            } else {
+                return null;
+            }
+        } catch (err) {
+            console.log(err);
+            return null;
+        }
+    }
 
 }
 

@@ -13,10 +13,21 @@
 <body>
 <div id="settings">
     <h1>Settings</h1>
-    <button type="button" id="send-random-question">Send Random Question</button>
-    <button type="button" id="send-random-state">Send Random Statement</button>
-    <button type="button" id="send-random-taunt">Send Random Taunt</button>
-    <button type="button" id="clear-msg">Clear Current Message</button>
+    <button id="send-random-question" type="button">Send Random Question</button>
+    <button id="send-random-state" type="button">Send Random Statement</button>
+    <button id="send-random-taunt" type="button">Send Random Taunt</button>
+    <button id="clear-msg" type="button">Clear Current Message</button>
+
+    <br>
+    <input id="question-img-box" style="width:20rem" type="text" value=""/>
+    <button id="question-img-submit" type="button">Update Question Image</button>
+    <br>
+    <input id="state-img-box" style="width:20rem" type="text" value=""/>
+    <button id="state-img-submit" type="button">Update Statement Image</button>
+    <br>
+    <input id="taunt-img-box" style="width:20rem" type="text" value=""/>
+    <button id="taunt-img-submit" type="button">Update Taunt Image</button>
+
 </div>
 
 <div id="approved-questions">
@@ -59,6 +70,14 @@
     });
 
     const typeArr = ['state', 'taunt', 'question']
+
+    // for each type, get the image and update the box
+    typeArr.forEach(type => {
+        console.log(`/api/get/img/${type}`)
+        fetch(`/api/get/img/${type}`).then(res => res.text()).then(res => {
+            document.getElementById(`${type}-img-box`).value = res;
+        })
+    })
 
     // Generate the approved divs
     typeArr.forEach(type => {
@@ -228,6 +247,42 @@
     document.getElementById('send-random-taunt').addEventListener('click', function () {
         fetch('/api/send/taunt', {
             method: 'DELETE'
+        })
+    });
+
+    document.getElementById('question-img-submit').addEventListener('click', function () {
+        const img = document.getElementById('question-img-box').value;
+        const img_mod = img.replace(/\//g, '|');
+
+        fetch('/api/img/update/question/' + img_mod, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+    });
+
+    document.getElementById('state-img-submit').addEventListener('click', function () {
+        const img = document.getElementById('state-img-box').value;
+        const img_mod = img.replace(/\//g, '|');
+
+        fetch('/api/img/update/state/' + img_mod, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+    });
+
+    document.getElementById('taunt-img-submit').addEventListener('click', function () {
+        const img = document.getElementById('taunt-img-box').value;
+        const img_mod = img.replace(/\//g, '|');
+
+        fetch('/api/img/update/taunt/' + img_mod, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
         })
     });
 

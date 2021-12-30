@@ -100,4 +100,30 @@ router.delete('/clear', (req, res) => {
     }
 });
 
+router.post('/img/update/:type/:img', (req, res) => {
+    const img_mod = req.params.img;
+    const type = req.params.type;
+
+    const img = img_mod.replace(/\|/g, '/');
+
+
+    let state = TwitchBot.setImage(type, img);
+    if (state) {
+        return res.status(200).send('Approved');
+    } else {
+        return res.status(404).send('Not found');
+    }
+});
+
+router.get('/get/img/:type', (req, res) => {
+    const type = req.params.type;
+
+    let img = TwitchBot.getImage(type);
+    if (img) {
+        return res.status(200).send(img);
+    } else {
+        return res.status(404).send('Not found');
+    }
+});
+
 export default router
