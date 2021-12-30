@@ -103,9 +103,21 @@ class Bot {
             }
         });
 
-        this.questionImg = 'https://i.imgur.com/removed.png';
-        this.stateImg = 'https://i.imgur.com/removed.png';
-        this.tauntImg = 'https://i.imgur.com/removed.png';
+        if (typeof process.env.QUESTION_IMG === 'string') {
+            this.questionImg = process.env.QUESTION_IMG;
+        } else {
+            this.questionImg = 'https://i.imgur.com/removed.png';
+        }
+        if (typeof process.env.TAUNT_IMG === 'string') {
+            this.tauntImg = process.env.TAUNT_IMG;
+        } else {
+            this.tauntImg = 'https://i.imgur.com/removed.png';
+        }
+        if (typeof process.env.STATE_IMG === 'string') {
+            this.stateImg = process.env.STATE_IMG;
+        } else {
+            this.stateImg = 'https://i.imgur.com/removed.png';
+        }
 
         this.setCurrMsg('', '');
     }
