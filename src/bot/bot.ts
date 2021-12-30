@@ -175,7 +175,6 @@ class Bot {
 
     public clearMessage() {
         try {
-            console.log('hit')
             this.setCurrMsg('');
             io.emit('clearStreamerMsg');
             return true
@@ -195,9 +194,7 @@ class Bot {
                         return this.stateArr[i]
                     }
                 }
-            }
-
-            if (type === 'taunt') {
+            } else if (type === 'taunt') {
                 for (let i = 0; i < this.tauntArr.length; i++) {
                     if (this.tauntArr[i].id === id) {
                         this.tauntArr[i].approved = true;
@@ -205,9 +202,7 @@ class Bot {
                         return this.stateArr[i]
                     }
                 }
-            }
-
-            if (type === 'question') {
+            } else if (type === 'question') {
                 for (let i = 0; i < this.questionArr.length; i++) {
                     if (this.questionArr[i].id === id) {
                         this.questionArr[i].approved = true;
@@ -215,10 +210,12 @@ class Bot {
                         return this.questionArr[i]
                     }
                 }
+            } else {
+                return false;
             }
-            return false
         } catch (err) {
             console.log(err);
+            return false
         }
     }
 
@@ -231,26 +228,24 @@ class Bot {
                         return this.stateArr[i];
                     }
                 }
-            }
-
-            if (type === 'taunt') {
+            } else if (type === 'taunt') {
                 for (let i = 0; i < this.tauntArr.length; i++) {
                     if (this.tauntArr[i].id === id) {
                         return this.tauntArr[i];
                     }
                 }
-            }
-
-            if (type === 'question') {
+            } else if (type === 'question') {
                 for (let i = 0; i < this.questionArr.length; i++) {
                     if (this.questionArr[i].id === id) {
                         return this.questionArr[i];
                     }
                 }
+            } else {
+                return false;
             }
-            return null
         } catch (err) {
             console.log(err);
+            return false;
         }
     }
 
@@ -264,28 +259,26 @@ class Bot {
                         return true;
                     }
                 }
-            }
-
-            if (type === 'taunt') {
+            } else if (type === 'taunt') {
                 for (let i = 0; i < this.tauntArr.length; i++) {
                     if (this.tauntArr[i].id === id) {
                         this.tauntArr.splice(i, 1);
                         return true;
                     }
                 }
-            }
-
-            if (type === 'question') {
+            } else if (type === 'question') {
                 for (let i = 0; i < this.questionArr.length; i++) {
                     if (this.questionArr[i].id === id) {
                         this.questionArr.splice(i, 1);
                         return true;
                     }
                 }
+            } else {
+                return false;
             }
-            return false
         } catch (err) {
             console.log(err);
+            return false;
         }
     }
 
@@ -294,16 +287,13 @@ class Bot {
         try {
             if (type === 'state') {
                 return this.stateArr.filter(item => item.approved === approved);
-            }
-
-            if (type === 'taunt') {
+            } else if (type === 'taunt') {
                 return this.tauntArr.filter(item => item.approved === approved);
-            }
-
-            if (type === 'question') {
+            } else if (type === 'question') {
                 return this.questionArr.filter(item => item.approved === approved);
+            } else {
+                return null;
             }
-            return null
         } catch (err) {
             console.log(err);
         }
@@ -314,43 +304,36 @@ class Bot {
         try {
             if (type === 'state') {
                 return this.stateArr[Math.floor(Math.random() * this.stateArr.length)];
-            }
-
-            if (type === 'taunt') {
+            } else if (type === 'taunt') {
                 return this.tauntArr[Math.floor(Math.random() * this.tauntArr.length)];
-            }
-
-            if (type === 'question') {
+            } else if (type === 'question') {
                 return this.questionArr[Math.floor(Math.random() * this.questionArr.length)];
+            } else {
+                return null;
             }
-            return null
         } catch (err) {
             console.log(err);
         }
     }
 
     public setRandomMessage(type: string) {
+        const validTypes = ['state', 'taunt', 'question'];
         try {
-            if (type === 'state') {
+            // if type is in valid types, get random message with type
+            if (validTypes.includes(type)) {
                 const msg = this.getRandomMessageByType(type);
-                this.sendMessage(msg.id, msg.type)
-                io.emit('deleteItem', msg.id)
-                return true
-            } else if (type === 'taunt') {
-                const msg = this.getRandomMessageByType(type);
-                this.sendMessage(msg.id, msg.type)
-                io.emit('deleteItem', msg.id)
-                return true
-            } else if (type === 'question') {
-                const msg = this.getRandomMessageByType(type);
-                this.sendMessage(msg.id, msg.type)
-                io.emit('deleteItem', msg.id)
-                return true
-            } else {
-                return false
+                // if message is not null, set message to current message
+                if (msg) {
+                    this.sendMessage(msg.id, msg.type)
+                    io.emit('deleteItem', msg.id)
+                    return true
+                } else {
+                    return false
+                }
             }
         } catch (err) {
             console.log(err);
+            return false
         }
     }
 
