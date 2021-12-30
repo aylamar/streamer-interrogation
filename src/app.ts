@@ -3,7 +3,9 @@ import Bot from './bot/bot';
 import { Server } from 'socket.io';
 
 const app = express();
-const server = app.listen(3000, () => console.log('listening on port 3000'));
+let port = process.env.PORT || 80;
+
+const server = app.listen(port, () => console.log('listening on port ' + port));
 export const io = new Server(server);
 export const TwitchBot = new Bot()
 
