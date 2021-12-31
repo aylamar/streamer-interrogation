@@ -379,9 +379,7 @@ class Bot {
                 this.tauntImg = url;
                 return true;
             } else if (type === 'question') {
-                console.log(this.questionImg, 'question1')
                 this.questionImg = url;
-                console.log(this.questionImg, 'question')
                 return true;
             } else {
                 return false;
