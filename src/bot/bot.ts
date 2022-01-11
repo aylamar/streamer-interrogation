@@ -16,6 +16,7 @@ class Bot {
     private stateImg: string;
     private tauntImg: string;
     private questionImg: string;
+    private filteredWords: string[];
 
     public constructor() {
         this.client = new tmi.Client({
@@ -26,6 +27,9 @@ class Bot {
             },
             channels: [`${process.env.TWITCH_CHANNEL}`]
         });
+
+        // convert process.env.FILTERED_WORDS to array
+        this.filteredWords = process.env.FILTERED_WORDS.split(',');
 
         this.client.connect().catch(console.error);
         this.client.on('connected', (address: string, port: number) => {
@@ -54,6 +58,8 @@ class Bot {
                 // get message sender, return if undefined
                 const username = userState['display-name'] ?? userState['username'];
                 if (!username) return;
+
+                if (this.filteredWords.some(word => msg.includes(word))) return;
 
                 let item = {
                     user: username,
