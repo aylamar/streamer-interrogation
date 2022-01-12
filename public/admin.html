@@ -65,8 +65,16 @@
         console.log('Connected to server');
     });
 
+    socket.on('close', function () {
+        console.log('disconnected');
+    });
+
     socket.on('alert', function (alertText) {
-        document.getElementById('alert').innerHTML = alertText;
+        try {
+            document.getElementById('alert').innerHTML = alertText;
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     const typeArr = ['state', 'taunt', 'question']
@@ -224,7 +232,11 @@
 
     // On "deleteItem", delete div with id = item.id
     socket.on('deleteItem', function (id) {
-        document.getElementById(id).remove();
+        try {
+            document.getElementById(id).remove();
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     // when clear-msg button is clicked, make a request to api
