@@ -13,6 +13,7 @@ router.get('/current', (req, res) => {
         io.emit('clearStreamerMsg')
         res.status(200).send(msg);
     } else {
+        console.log('current', msg);
         io.emit('newStreamerMsg', msg);
         res.status(200).send(msg);
     }
@@ -21,6 +22,7 @@ router.get('/current', (req, res) => {
 router.delete('/send/:type' , (req, res) => {
     let state = TwitchBot.setRandomMessage(req.params.type);
     if (state) {
+        console.log('sent', state);
         res.status(200).send(TwitchBot.currMsg);
     } else {
         res.status(500).send('Error');
@@ -34,11 +36,13 @@ router.get('/:status/:type', (req, res) => {
 
     // if status is unapproved, return all items with "approved" === false for that type
     if (status === 'unapproved') {
+        console.log('unapproved', type);
         const messages = TwitchBot.getAllMessagesByType(type, false);
         return res.status(200).send(messages);
     }
 
     if (status === 'approved') {
+        console.log('approved', type);
         const messages = TwitchBot.getAllMessagesByType(type, true)
         return res.status(200).send(messages);
     }
@@ -49,6 +53,7 @@ router.delete('/uap/:status/:type/:id', (req, res) => {
     if (req.params.status === 'approve') {
         let msg = TwitchBot.approveMsg(req.params.id, req.params.type);
         if (msg) {
+            console.log('uap-approve', msg);
             io.emit('deleteItem', req.params.id);
             io.emit('addApprovedItem', msg);
             return res.status(200).send('Approved');
@@ -60,6 +65,7 @@ router.delete('/uap/:status/:type/:id', (req, res) => {
     if (req.params.status === 'deny') {
         let state = TwitchBot.deleteMsg(req.params.id, req.params.type);
         if (state) {
+            console.log('uap-deny', state);
             io.emit('deleteItem', req.params.id);
             return res.status(200).send('Approved');
         } else {
@@ -74,6 +80,7 @@ router.delete('/ap/:status/:type/:id', (req, res) => {
     if (req.params.status === 'send') {
         let state = TwitchBot.sendMessage(req.params.id, req.params.type);
         if (state) {
+            console.log('ap-send', state);
             io.emit('deleteItem', req.params.id);
             return res.status(200).send('Approved');
         } else {
@@ -83,6 +90,7 @@ router.delete('/ap/:status/:type/:id', (req, res) => {
     if (req.params.status === 'delete') {
         let state = TwitchBot.deleteMsg(req.params.id, req.params.type);
         if (state) {
+            console.log('ap-delete', state);
             io.emit('deleteItem', req.params.id);
             return res.status(200).send('Approved');
         } else {
@@ -94,6 +102,7 @@ router.delete('/ap/:status/:type/:id', (req, res) => {
 router.delete('/clear', (req, res) => {
     let state = TwitchBot.clearMessage()
     if (state) {
+        console.log('clear', state);
         return res.status(200).send('Approved');
     } else {
         return res.status(404).send('Not found');

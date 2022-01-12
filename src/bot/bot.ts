@@ -59,7 +59,9 @@ class Bot {
                 const username = userState['display-name'] ?? userState['username'];
                 if (!username) return;
 
-                if (this.filteredWords.some(word => msg.includes(word))) return;
+                // convert msg to lowercase then check to see if it contains a filtered word
+                const msgLower = msg.toLowerCase();
+                if (this.filteredWords.some(word => msgLower.includes(word))) return;
 
                 let item = {
                     user: username,
