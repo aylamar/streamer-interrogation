@@ -111,7 +111,10 @@
                         const id = items[i].id;
                         fetch(`/api/ap/send/${type}/${id}`, {
                             method: 'DELETE'
-                        })
+                        }).then(function (response) {
+                            if (response.status === 404) {
+                                document.getElementById(id).remove();
+                            }})
                     });
 
                     const denyButton = document.createElement('button');
@@ -122,7 +125,10 @@
                         const id = items[i].id;
                         fetch(`/api/ap/delete/${type}/${id}`, {
                             method: 'DELETE'
-                        })
+                        }).then(function (response) {
+                            if (response.status === 404) {
+                                document.getElementById(id).remove();
+                            }})
                     });
                 }
             });
@@ -153,7 +159,11 @@
                         const id = items[i].id;
                         fetch(`/api/uap/approve/${type}/${id}`, {
                             method: 'DELETE'
-                        })
+                        }).then(function (response) {
+                                console.log(response.status);
+                                if (response.status === 404) {
+                                    document.getElementById(id).remove();
+                                }})
                     });
 
                     const denyButton = document.createElement('button');
@@ -164,7 +174,10 @@
                         const id = items[i].id;
                         fetch(`/api/uap/deny/${type}/${id}`, {
                             method: 'DELETE'
-                        })
+                        }).then(function (response) {
+                            if (response.status === 404) {
+                                document.getElementById(id).remove();
+                            }})
                     });
                 }
             });
@@ -185,7 +198,10 @@
             const id = item.id;
             fetch(`/api/uap/approve/${item.type}/${id}`, {
                 method: 'DELETE'
-            })
+            }).then(function (response) {
+                if (response.status === 404) {
+                    document.getElementById(id).remove();
+                }})
         });
 
         const denyButton = document.createElement('button');
@@ -196,7 +212,10 @@
             const id = item.id;
             fetch(`/api/uap/deny/${item.type}/${id}`, {
                 method: 'DELETE'
-            })
+            }).then(function (response) {
+                if (response.status === 404) {
+                    document.getElementById(id).remove();
+                }})
         });
     });
 
@@ -215,7 +234,10 @@
             const id = item.id;
             fetch(`/api/ap/send/${item.type}/${id}`, {
                 method: 'DELETE'
-            })
+            }).then(function (response) {
+                if (response.status === 404) {
+                    document.getElementById(id).remove();
+                }})
         });
 
         const denyButton = document.createElement('button');
@@ -226,7 +248,10 @@
             const id = item.id;
             fetch(`/api/ap/delete/${item.type}/${id}`, {
                 method: 'DELETE'
-            })
+            }).then(function (response) {
+                if (response.status === 404) {
+                    document.getElementById(id).remove();
+                }})
         });
     });
 
