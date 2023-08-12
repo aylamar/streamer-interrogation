@@ -12,6 +12,7 @@ router.get("/", (req, res) => {
     const authorization = req.headers.authorization
 
     if(!authorization) {
+        console.log("Unauthorized")
         return reject()
     }
 

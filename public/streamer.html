@@ -14,34 +14,68 @@
     }
 </style>
 
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    console.log('starting...')
+    var socket = io();
+
+    socket.on('connect', function() {
+        console.log('connected');
+    });
+
+    // onload, get the current message from api
+    fetch('/api/current')
+        .then(function(response) {
+            response.json().then(function(data) {
+                console.log(data)
+
+                let message = data.msg;
+                let type = data.type;
+
+                if (type === 'state') {
+                    message = 'State: ' + message;
+                } else if (type === 'question') {
+                    message = 'Question: ' + message;
+                } else if (type === 'taunt') {
+                    console.log('hit')
+                    message = 'Flirt: ' + message;
+                }
+                document.getElementById('message').innerHTML = message;
+            });
+        })
+
+    // on newMessage event, set the new message as the divs innerHTML
+    socket.on('newStreamerMsg', function(data) {
+        console.log('newStreamerMsg')
+        console.log(data);
+
+        let message = data.msg.msg;
+        let type = data.msg.type;
+
+        if (type === 'state') {
+            message = 'State: ' + message;
+        } else if (type === 'question') {
+            message = 'Question: ' + message;
+        } else if (type === 'taunt') {
+            message = 'Flirt: ' + message;
+        }
+
+        document.getElementById('message').innerHTML = message;
+        // document.getElementById('img').src = data.url;
+        // document.getElementById('img').style.visibility = 'visible';
+    });
+
+    // on clear event, hide the image and clear the message
+    socket.on('clearStreamerMsg', function() {
+        console.log('clearStreamerMsg')
+        // document.getElementById('img').style.visibility = 'hidden';
+        document.getElementById('message').innerHTML = '';
+    });
+
+</script>
 <body>
     <div id="message"></div>
     <img id="img" src="" alt="" style="visibility: hidden;">
 </body>
 
-<script src="/socket.io/socket.io.js"></script>
-
-<script>
-    var socket = io();
-
-    // onload, get the current message from api
-    fetch('/api/current')
-        .then(function(response) {
-            return response.json();
-        })
-
-    // on newMessage event, set the new message as the divs innerHTML
-    socket.on('newStreamerMsg', function(data) {
-        console.log(data);
-        document.getElementById('message').innerHTML = data.msg.msg;
-        document.getElementById('img').src = data.url;
-        document.getElementById('img').style.visibility = 'visible';
-    });
-
-    // on clear event, hide the image and clear the message
-    socket.on('clearStreamerMsg', function() {
-        document.getElementById('img').style.visibility = 'hidden';
-        document.getElementById('message').innerHTML = '';
-    });
-
-</script>
